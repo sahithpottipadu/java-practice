@@ -1,6 +1,9 @@
 package com.sp.desired.java.practice;
 
-import java.util.Arrays;import java.util.Comparator;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -55,6 +58,11 @@ public class Streams
 	public static Employee getEmployeeById(Integer id)
 	{
 		return empMap.getOrDefault(1, null);
+	}
+	
+	public static String getEmployeeNameById(Integer id)
+	{
+		return empMap.get(id).getfName();
 	}
 	
 	public static void basicOperation()
@@ -122,6 +130,42 @@ public class Streams
 		
 	}	
 	
+	static void advancedCollect()
+	{
+		List<Employee> employees = Arrays.asList(emps);
+		
+		// joining
+		Integer[] empIds = {1,2,3};
+		String names = Stream.of(empIds).map(Streams::getEmployeeNameById)
+										.collect(Collectors.joining(", "))
+										.toString();
+		
+		//grouping & mapping
+		
+		Map<String, List<Employee>> ss1 = employees.stream().collect(Collectors.groupingBy(Employee::getfName));
+				
+		Map<String, List<Double>> ss2 = employees.stream()
+										.collect(Collectors.groupingBy(
+																		Employee::getfName, 
+																		Collectors.mapping
+																		(
+																			e -> e.getSalary(), Collectors.toList()
+																		)
+																	));
+		
+		//summarizingDouble,Int,Long
+		DoubleSummaryStatistics stats = employees.stream().collect(Collectors.summarizingDouble(Employee::getSalary));
+		System.out.println(stats.getAverage());
+		
+		//partitionBy
+		List<Integer> intList = Arrays.asList(2, 4, 5, 6, 8);
+		Map<Boolean, List<Integer>> s3 = intList.stream().collect(Collectors.partitioningBy(i -> i%2 == 0));
+		
+		//parallelstreams
+		employees.stream().parallel().forEach(e -> System.out.println(e.getId()));
+		
+	}
+	
 	public static void main(String[] args) 
 	{
 		List<List<String>> l3 = Arrays.asList
@@ -134,12 +178,14 @@ l3.stream().flatMap(x -> Stream.of(x.get(0)+x.get(1))).forEach(System.out::print
 		emps = new Employee[] 
 				{
 					new Employee(1, "f1", "l1", 100),
-					new Employee(1, "f2", "l2", 200),
-					new Employee(1, "f3", "l3", 300)
+					new Employee(2, "f1", "l2", 100),
+					new Employee(3, "f3", "l3", 300)
 				};
+		empMap = new HashMap<Integer, Employee>();
 		empMap.put(emps[0].getId(), emps[0]);
 		empMap.put(emps[1].getId(), emps[1]);
 		empMap.put(emps[2].getId(), emps[2]);
+		advancedCollect();
 		createStreamFromArray();
 	}
 
